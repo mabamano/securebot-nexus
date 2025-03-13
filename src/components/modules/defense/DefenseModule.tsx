@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Upload, Shield, AlertTriangle, Activity, Layers, Server, Cpu, Wifi, Lock, Clock } from 'lucide-react';
+import { Upload, Shield, AlertTriangle, Activity, Layers, Server, Cpu, Wifi, Lock, Clock, Loader } from 'lucide-react';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import GlassContainer from '../../ui-custom/GlassContainer';
 import { cn } from '@/lib/utils';
@@ -630,7 +629,7 @@ const DefenseModule = () => {
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader className="w-4 h-4 mr-2 animate-spin" />
                   Processing...
                 </>
               ) : (
