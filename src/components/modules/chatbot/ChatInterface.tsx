@@ -27,7 +27,8 @@ const GEMINI_API_KEY = 'AIzaSyDLMJ2rvQK4ahSzb79owfK5UNKfnKe2EyQ';
 // Function to get response from Gemini API
 const getGeminiResponse = async (message: string): Promise<string> => {
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
+    // Updated to use the correct API version (v1 instead of v1beta)
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.0-pro:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
