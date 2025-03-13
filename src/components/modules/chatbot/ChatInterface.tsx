@@ -4,6 +4,7 @@ import { SendHorizonal, User, Bot, Loader2 } from 'lucide-react';
 import GlassContainer from '../../ui-custom/GlassContainer';
 import TypingEffect from '../../ui-custom/TypingEffect';
 import { cn } from '@/lib/utils';
+import { toast } from '@/components/ui/use-toast';
 
 interface Message {
   id: string;
@@ -20,11 +21,79 @@ const INITIAL_MESSAGES: Message[] = [
   },
 ];
 
-// Simulated response function - would be replaced with actual API call
-const getAIResponse = async (message: string): Promise<string> => {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
+// Gemini API key
+const GEMINI_API_KEY = 'AIzaSyDLMJ2rvQK4ahSzb79owfK5UNKfnKe2EyQ';
+
+// Function to get response from Gemini API
+const getGeminiResponse = async (message: string): Promise<string> => {
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: `You are a cybersecurity assistant for CyberShield. 
+                       Provide helpful, accurate, and concise responses about cybersecurity, digital privacy, and online safety.
+                       The user asks: ${message}`
+              }
+            ]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 800,
+        },
+        safetySettings: [
+          {
+            category: "HARM_CATEGORY_HARASSMENT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_HATE_SPEECH",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          }
+        ]
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Gemini API error:', errorData);
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    // Extract the text from the response
+    if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
+      return data.candidates[0].content.parts[0].text;
+    } else {
+      console.error('Unexpected API response structure:', data);
+      throw new Error('Unexpected API response structure');
+    }
+  } catch (error) {
+    console.error('Error calling Gemini API:', error);
+    return "I'm sorry, I encountered an error processing your request. Please try again.";
+  }
+};
+
+// Fallback response function in case the API fails
+const getFallbackResponse = (message: string): string => {
   const responses = [
     "It's important to be careful about sharing private photos on any platform, including Snapchat. While Snapchat has disappearing messages, recipients can still screenshot or record your screen. Always assume that anything you share digitally could potentially become permanent.",
     "Using strong, unique passwords for each account is one of the most effective ways to protect yourself online. Consider using a password manager to generate and store complex passwords.",
@@ -78,7 +147,18 @@ const ChatInterface = () => {
       ]);
       
       // Get AI response
-      const response = await getAIResponse(input);
+      let response;
+      try {
+        response = await getGeminiResponse(input);
+      } catch (error) {
+        console.error("Gemini API failed, using fallback:", error);
+        toast({
+          title: "API Error",
+          description: "Using fallback response due to API error.",
+          variant: "destructive"
+        });
+        response = getFallbackResponse(input);
+      }
       
       // Update the placeholder with the actual response
       setMessages(prev => 
@@ -89,7 +169,7 @@ const ChatInterface = () => {
         )
       );
     } catch (error) {
-      console.error('Error getting AI response:', error);
+      console.error('Error in chat flow:', error);
       setMessages(prev => [
         ...prev,
         {

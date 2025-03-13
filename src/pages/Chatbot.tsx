@@ -15,7 +15,7 @@ const Chatbot = () => {
           <div className="mb-8">
             <h1 className="text-3xl md:text-4xl font-bold mb-4">Security Assistant</h1>
             <p className="text-cybershield-500">
-              Get expert cybersecurity guidance and answers to your security questions.
+              Get expert cybersecurity guidance powered by Google Gemini AI.
             </p>
           </div>
           
